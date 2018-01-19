@@ -1,0 +1,208 @@
+# this is an example of the Uber API
+# as a demonstration of an API spec in YAML
+swagger: '2.0'
+info:
+  title: Assessment Catalog API
+  description: Create, Read, Update and Delete Catalogs
+  version: "1.0.0"
+# the domain of the service
+host: assessment.cisco.com
+# array of all schemes that your API supports
+schemes:
+  - https
+# will be prefixed to all paths
+basePath: /assessment/v1
+produces:
+  - application/json
+paths:
+  /catalog:
+    get:
+      summary: Get all Catalog items
+      description: The catalog endpoint returns a list of Catalogs created by the logged in user. The response includes the unique id and other details about each catalog. Only 25 records in active or draft status are returned.
+      tags:
+        - catalog
+      responses:
+        200:
+          description: List of catalogs
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/catalog'
+        401:
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/Response'
+    post:
+      summary: Adds an Catalog item for the logged in user
+      description: |
+        The Catalog endpoint creates a new Catalog in the system with the details as specified in request body.
+      parameters:
+        - in: "body"
+          name: "catalog"
+          description: "Catalog item to be created in the system"
+          required: true
+          schema:
+             $ref: '#/definitions/catalog'
+      tags:
+        - catalog
+      responses:
+        200:
+          description: An Catalog itme with the status field updated
+          schema:
+             $ref: '#/definitions/catalog'
+        422:
+          description: "Validation exception"
+          schema:
+            $ref: '#/definitions/Response'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Response'
+  /catalog/{catalogId}:
+    get:
+      tags:
+        - catalog
+      summary: "Find a Catalog item by its unique id"
+      description: "Returns a Catalog with the specified unique id for the logged in user"
+      parameters:
+        - name: "catalogId"
+          in: "path"
+          description: "unique id of the requested Catalog item"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            $ref: '#/definitions/catalog'
+        404:
+          description: "Catalog not found"
+          schema:
+            $ref: '#/definitions/Response'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Response'
+    put:
+      summary: Updates an unpublished Catalog item for the logged in user
+      description: |
+        The Catalog endpoint Updates Catalog with a specified uid in the system with the details as in request body.
+      parameters:
+        - name: "catalogId"
+          in: "path"
+          description: "unique id of the requested Catalog item"
+          required: true
+          type: "string"
+        - in: "body"
+          name: "catalog"
+          description: "Catalog item to be updated in the system"
+          required: true
+          schema:
+             $ref: '#/definitions/catalog'
+      tags:
+        - catalog
+      responses:
+        200:
+          description: An Catalog itme with the status field updated
+          schema:
+             $ref: '#/definitions/catalog'
+        422:
+          description: "Validation exception"
+          schema:
+            $ref: '#/definitions/Response'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Response'
+
+    delete:
+      tags:
+        - catalog
+      summary: "Deletes a Catalog item by its unique id"
+      description: "Deletes a Catalog with the specified unique id for the logged in user"
+      parameters:
+        - name: "catalogId"
+          in: "path"
+          description: "Unique id of the Catalog item to be deleted"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            $ref: '#/definitions/catalog'
+        404:
+          description: "Catalog not found"
+          schema:
+            $ref: '#/definitions/Response'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Response'
+definitions:
+  catalog:
+    type: object
+    properties:
+      uid:
+        type: string
+        description: Unique Id repreenting a specific Catalog
+      description:
+        type: string
+        description: A description about the Catalog
+      name:
+        type: string
+        description: Name of the Catalog.
+      durationAllowed:
+        type: array
+        items:
+          type: string
+        description: List of duration allowed (in days)
+      icSubset:
+        type: array
+        items:
+          type: string
+        description: List of ids/Names of IC's
+      version:
+        type: string
+        description: Version of the catalog, to help maintain the versions
+      status:
+        type: string
+        enum: [published,draft,deleted]
+        description: Current status of the Enrichement Job.
+      owner:
+        type: string
+        description: cec id of the Owner/creator of the catalog
+      visibility:
+        type: string
+        enum: [public,private]
+        description: Visibility of the Catalog.
+      tags:
+        type: string
+        description: Tags for the Catalog.
+      created:
+        type: string
+        description: Timestamp of creation date
+      updated:
+        type: string
+        description: Timestamp of last update date
+  notification:
+    type: object
+    properties:
+      code:
+        type: integer
+        format: int32
+      field:
+        type: string
+      message:
+        type: string
+      recommendation:
+        type: string
+  Response:
+    type: object
+    properties:
+      message:
+        type: string
+      errors:
+        type: array
+        items:
+          $ref: '#/definitions/notification'
